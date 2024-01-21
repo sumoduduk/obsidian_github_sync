@@ -11,7 +11,7 @@ pub struct GithubConfig {
     key: String,
 }
 
-pub fn load_config(path: &Path) -> eyre::Result<KeyStruct> {
+pub fn load_config(path: &Path) -> eyre::Result<GithubConfig> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 
