@@ -1,6 +1,19 @@
+use std::path::Path;
 use std::process::{Command, Output};
 
-pub fn git_add_commit(git_command: &mut Command, time_now: &str) -> eyre::Result<Output> {
+fn change_curent_dir(git_command: &mut Command, temp_path: &Path) {
+    git_command.current_dir(temp_path);
+    let git_current_path = git_command.get_current_dir().unwrap();
+
+    assert_eq!(temp_path, git_current_path);
+}
+
+pub fn git_add_commit(
+    git_command: &mut Command,
+    time_now: &str,
+    temp_path: &Path,
+) -> eyre::Result<Output> {
+    change_curent_dir(git_command, temp_path);
     let output = git_command
         .arg("commit")
         .arg("-a")
@@ -10,7 +23,8 @@ pub fn git_add_commit(git_command: &mut Command, time_now: &str) -> eyre::Result
     Ok(output)
 }
 
-pub fn git_push(git_command: &mut Command) -> eyre::Result<Output> {
+pub fn git_push(git_command: &mut Command, temp_path: &Path) -> eyre::Result<Output> {
+    change_curent_dir(git_command, temp_path);
     let output = git_command.arg("push").output()?;
     Ok(output)
 }
@@ -32,13 +46,6 @@ mod test {
     use std::io::Write;
     use std::path::Path;
     use tempdir::TempDir;
-
-    fn change_curent_dir(git_command: &mut Command, temp_path: &Path) {
-        git_command.current_dir(temp_path);
-        let git_current_path = git_command.get_current_dir().unwrap();
-
-        assert_eq!(temp_path, git_current_path);
-    }
 
     fn git_init(git_command: &mut Command) {
         let output_init = git_command.arg("init").output().unwrap();
@@ -68,14 +75,12 @@ mod test {
         create_imaginary_file(&temp_path);
 
         let mut git_cmd_commit = Command::new("git");
-        change_curent_dir(&mut git_cmd_commit, &temp_path);
         let time_str = fetch_current_time();
-        let commit_output = git_add_commit(&mut git_cmd_commit, &time_str)?;
+        let commit_output = git_add_commit(&mut git_cmd_commit, &time_str, &temp_path)
+            .and_then(|op| Ok(op.stderr.len()))?;
         dbg!(&commit_output);
 
-        let commit_output_len = commit_output.stderr.len();
-
-        assert_eq!(0, commit_output_len);
+        assert_eq!(0, commit_output);
 
         Ok(())
     }
