@@ -3,9 +3,10 @@ use std::path::PathBuf;
 
 pub fn get_path(path_str: &str) -> eyre::Result<PathBuf> {
     let path = PathBuf::from(path_str);
-    path.is_dir()
+    let _ = path
+        .is_dir()
         .then_some(|p: PathBuf| p)
-        .ok_or_eyre("folder not exists")?;
+        .ok_or_eyre("folder not exists");
     Ok(path)
 }
 
