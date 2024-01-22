@@ -1,12 +1,12 @@
 use std::process::{Command, Output};
 
-pub fn git_add(git_command: &mut Command) -> eyre::Result<Output> {
-    let output = git_command.arg("add").arg(".").output()?;
-    Ok(output)
-}
-
-pub fn git_commit(git_command: &mut Command, time_now: &str) -> eyre::Result<Output> {
-    let output = git_command.arg("commit").arg("-m").arg(time_now).output()?;
+pub fn git_add_commit(git_command: &mut Command, time_now: &str) -> eyre::Result<Output> {
+    let output = git_command
+        .arg("commit")
+        .arg("-a")
+        .arg("-m")
+        .arg(time_now)
+        .output()?;
     Ok(output)
 }
 
@@ -48,31 +48,6 @@ mod test {
     }
 
     #[test]
-    fn git_test_git_add() -> eyre::Result<()> {
-        let temp_dir = TempDir::new("test_dir_add")?;
-        let temp_path = temp_dir.path();
-        println!(
-            "INFO: tempdir path = {temp_path}",
-            temp_path = temp_path.display()
-        );
-
-        let mut git_cmd_init = Command::new("git");
-        change_curent_dir(&mut git_cmd_init, &temp_path);
-        git_init(&mut git_cmd_init);
-
-        create_imaginary_file(&temp_path);
-
-        let mut git_cmd_add = Command::new("git");
-        change_curent_dir(&mut git_cmd_add, &temp_path);
-
-        let output = git_add(&mut git_cmd_add)?;
-        dbg!(&output);
-        let output_len = output.stderr.len();
-        assert_eq!(0, output_len);
-        Ok(())
-    }
-
-    #[test]
     fn git_test_git_commit() -> eyre::Result<()> {
         let temp_dir = TempDir::new("test_dir_commit")?;
         let temp_path = temp_dir.path();
@@ -87,17 +62,10 @@ mod test {
 
         create_imaginary_file(&temp_path);
 
-        let mut git_cmd_add = Command::new("git");
-        change_curent_dir(&mut git_cmd_add, &temp_path);
-
-        let output = git_add(&mut git_cmd_add)?;
-        let output_len = output.stderr.len();
-        assert_eq!(0, output_len);
-
         let mut git_cmd_commit = Command::new("git");
         change_curent_dir(&mut git_cmd_commit, &temp_path);
         let time_str = fetch_current_time();
-        let commit_output = git_commit(&mut git_cmd_commit, &time_str)?;
+        let commit_output = git_add_commit(&mut git_cmd_commit, &time_str)?;
         dbg!(&commit_output);
 
         let commit_output_len = commit_output.stderr.len();
