@@ -33,6 +33,7 @@ fn main() -> eyre::Result<()> {
 
     let mut cmd_push = Command::new("git");
     let push_output = git_push(&mut cmd_push, &path)?;
+    dbg!(&push_output);
     let push_err_vec = push_output.stderr;
 
     if !push_err_vec.is_empty() {
