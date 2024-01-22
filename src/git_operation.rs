@@ -10,6 +10,11 @@ pub fn git_add_commit(git_command: &mut Command, time_now: &str) -> eyre::Result
     Ok(output)
 }
 
+pub fn git_push(git_command: &mut Command) -> eyre::Result<Output> {
+    let output = git_command.arg("push").output()?;
+    Ok(output)
+}
+
 pub fn check_valid_stdout(slice: &[u8], checker: &str) {
     let get_str =
         std::str::from_utf8(slice).expect("ERROR: check_valid_stdout mus convert silce to str");
