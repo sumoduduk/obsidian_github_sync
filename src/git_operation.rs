@@ -29,15 +29,6 @@ pub fn git_push(git_command: &mut Command, temp_path: &Path) -> eyre::Result<Out
     Ok(output)
 }
 
-pub fn check_valid_stdout(slice: &[u8], checker: &str) {
-    let get_str =
-        std::str::from_utf8(slice).expect("ERROR: check_valid_stdout mus convert silce to str");
-
-    println!("INFO: is contained {get_str}  > {checker} ");
-
-    assert!(get_str.starts_with(checker));
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -59,6 +50,15 @@ mod test {
         writeln!(tmp_file, "Brian was here. Briefly.").unwrap();
     }
 
+    fn check_valid_stdout(slice: &[u8], checker: &str) {
+        let get_str =
+            std::str::from_utf8(slice).expect("ERROR: check_valid_stdout mus convert silce to str");
+
+        println!("INFO: is contained {get_str}  > {checker} ");
+
+        assert!(get_str.starts_with(checker));
+    }
+
     #[test]
     fn git_test_git_commit() -> eyre::Result<()> {
         let temp_dir = TempDir::new("test_dir_commit")?;
@@ -77,8 +77,7 @@ mod test {
         let mut git_cmd_commit = Command::new("git");
         let time_str = fetch_current_time();
         let commit_output = git_add_commit(&mut git_cmd_commit, &time_str, &temp_path)
-            .and_then(|op| Ok(op.stderr.len()))?;
-        dbg!(&commit_output);
+            .and_then(|op| Ok(op.stderr.len() == 0))?;
 
         assert_eq!(0, commit_output);
 
