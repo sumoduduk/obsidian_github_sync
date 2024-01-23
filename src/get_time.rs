@@ -13,7 +13,7 @@ pub fn fetch_current_time() -> String {
     };
 
     format!(
-        "[TEST] Obsidian Sync time : {}, {}-{}-{} {}:{}:{}",
+        "Obsidian Sync time : {}, {}-{}-{} {}:{}:{}",
         weekday,
         now.day(),
         now.month(),

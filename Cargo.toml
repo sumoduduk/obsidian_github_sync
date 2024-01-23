@@ -17,3 +17,9 @@ eyre = "0.6.11"
 [dev-dependencies]
 dotenvy = "0.15.7"
 tempdir = "0.3.7"
+
+[profile.release]
+strip = true
+opt-level = "s"
+lto  = true
+codegen-units = 1
