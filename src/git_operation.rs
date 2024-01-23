@@ -1,5 +1,27 @@
+mod get_time;
+
+use get_time::fetch_current_time;
 use std::path::Path;
 use std::process::{Command, Output};
+
+pub enum Git {
+    Add,
+    Commit,
+    Push,
+}
+
+impl Git {
+    pub fn proceed(self, path: &Path) -> eyre::Result<Output> {
+        let mut git_command = Command::new("git");
+        let time_str = fetch_current_time();
+
+        match self {
+            Self::Add => git_add(&mut git_command, path),
+            Self::Commit => git_add_commit(&mut git_command, &time_str, path),
+            Self::Push => git_push(&mut git_command, path),
+        }
+    }
+}
 
 fn change_curent_dir(git_command: &mut Command, temp_path: &Path) {
     git_command.current_dir(temp_path);
@@ -8,13 +30,13 @@ fn change_curent_dir(git_command: &mut Command, temp_path: &Path) {
     assert_eq!(temp_path, git_current_path);
 }
 
-pub fn git_add(git_command: &mut Command, temp_path: &Path) -> eyre::Result<Output> {
+fn git_add(git_command: &mut Command, temp_path: &Path) -> eyre::Result<Output> {
     change_curent_dir(git_command, temp_path);
     let output = git_command.arg("add").arg(".").output()?;
     Ok(output)
 }
 
-pub fn git_add_commit(
+fn git_add_commit(
     git_command: &mut Command,
     time_now: &str,
     temp_path: &Path,
@@ -24,7 +46,7 @@ pub fn git_add_commit(
     Ok(output)
 }
 
-pub fn git_push(git_command: &mut Command, temp_path: &Path) -> eyre::Result<Output> {
+fn git_push(git_command: &mut Command, temp_path: &Path) -> eyre::Result<Output> {
     change_curent_dir(git_command, temp_path);
     let output = git_command.arg("push").output()?;
     Ok(output)
@@ -33,7 +55,6 @@ pub fn git_push(git_command: &mut Command, temp_path: &Path) -> eyre::Result<Out
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::get_time::fetch_current_time;
     use std::fs::File;
     use std::io::Write;
     use std::path::Path;
@@ -61,7 +82,34 @@ mod test {
     }
 
     #[test]
-    fn git_test_git_commit() -> eyre::Result<()> {
+    fn test_git_enum() -> eyre::Result<()> {
+        let temp_dir = TempDir::new("test_dir_commit")?;
+        let temp_path = temp_dir.path();
+        println!(
+            "INFO: tempdir path = {temp_path}",
+            temp_path = temp_path.display()
+        );
+
+        let mut git_cmd_init = Command::new("git");
+        change_curent_dir(&mut git_cmd_init, &temp_path);
+        git_init(&mut git_cmd_init);
+
+        create_imaginary_file(&temp_path);
+
+        let git_add_status = Git::Add
+            .proceed(&temp_path)
+            .and_then(|out| Ok(out.status))?;
+        assert_eq!(true, git_add_status.success());
+
+        let commit_stderr_len = Git::Commit
+            .proceed(&temp_path)
+            .and_then(|out| Ok(out.stderr.len()))?;
+        assert_eq!(0, commit_stderr_len);
+        Ok(())
+    }
+
+    #[test]
+    fn test_git_commit() -> eyre::Result<()> {
         let temp_dir = TempDir::new("test_dir_commit")?;
         let temp_path = temp_dir.path();
         println!(
