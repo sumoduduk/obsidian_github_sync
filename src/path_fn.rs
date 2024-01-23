@@ -14,7 +14,7 @@ pub fn get_path(path_str: &str) -> eyre::Result<PathBuf> {
 mod test {
     use super::*;
     use dotenvy::dotenv;
-    use std::env::{args, var};
+    use std::env::var;
 
     #[test]
     fn test_path_is_exist() -> eyre::Result<()> {
