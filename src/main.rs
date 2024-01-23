@@ -33,9 +33,8 @@ fn main() -> eyre::Result<()> {
 
     let mut cmd_push = Command::new("git");
     let push_output = git_push(&mut cmd_push, &path)?;
-    let push_err_vec = push_output.stderr;
 
-    let std_out_msg = std::str::from_utf8(&push_output.stdout)?;
+    let std_out_msg = std::str::from_utf8(&push_output.stderr)?;
 
     println!("{}", std_out_msg);
 

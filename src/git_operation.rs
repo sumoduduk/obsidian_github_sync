@@ -8,18 +8,19 @@ fn change_curent_dir(git_command: &mut Command, temp_path: &Path) {
     assert_eq!(temp_path, git_current_path);
 }
 
+pub fn git_add(git_command: &mut Command, temp_path: &Path) -> eyre::Result<Output> {
+    change_curent_dir(git_command, temp_path);
+    let output = git_command.arg("add").arg(".").output()?;
+    Ok(output)
+}
+
 pub fn git_add_commit(
     git_command: &mut Command,
     time_now: &str,
     temp_path: &Path,
 ) -> eyre::Result<Output> {
     change_curent_dir(git_command, temp_path);
-    let output = git_command
-        .arg("commit")
-        .arg("-a")
-        .arg("-m")
-        .arg(time_now)
-        .output()?;
+    let output = git_command.arg("commit").arg("-m").arg(time_now).output()?;
     Ok(output)
 }
 
@@ -74,12 +75,17 @@ mod test {
 
         create_imaginary_file(&temp_path);
 
+        let mut cmd_add = Command::new("git");
+        let status = git_add(&mut cmd_add, &temp_path).and_then(|out| Ok(out.status))?;
+
+        assert_eq!(true, status.success());
+
         let mut git_cmd_commit = Command::new("git");
         let time_str = fetch_current_time();
         let commit_output = git_add_commit(&mut git_cmd_commit, &time_str, &temp_path)
             .and_then(|op| Ok(op.stderr.len() == 0))?;
 
-        assert_eq!(0, commit_output);
+        assert_eq!(true, commit_output);
 
         Ok(())
     }
